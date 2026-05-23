@@ -9,38 +9,272 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShopRouteImport } from './routes/shop'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as ManageRouteImport } from './routes/manage'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ManageIndexRouteImport } from './routes/manage.index'
+import { Route as ManageUsersRouteImport } from './routes/manage.users'
+import { Route as ManageProductsRouteImport } from './routes/manage.products'
+import { Route as ManagePasswordRouteImport } from './routes/manage.password'
+import { Route as ManageCouponsRouteImport } from './routes/manage.coupons'
+import { Route as ManageAdminsRouteImport } from './routes/manage.admins'
 
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageRoute = ManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageIndexRoute = ManageIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageUsersRoute = ManageUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageProductsRoute = ManageProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManagePasswordRoute = ManagePasswordRouteImport.update({
+  id: '/password',
+  path: '/password',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageCouponsRoute = ManageCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageAdminsRoute = ManageAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => ManageRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/manage': typeof ManageRouteWithChildren
+  '/products': typeof ProductsRoute
+  '/register': typeof RegisterRoute
+  '/shop': typeof ShopRoute
+  '/manage/admins': typeof ManageAdminsRoute
+  '/manage/coupons': typeof ManageCouponsRoute
+  '/manage/password': typeof ManagePasswordRoute
+  '/manage/products': typeof ManageProductsRoute
+  '/manage/users': typeof ManageUsersRoute
+  '/manage/': typeof ManageIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/products': typeof ProductsRoute
+  '/register': typeof RegisterRoute
+  '/shop': typeof ShopRoute
+  '/manage/admins': typeof ManageAdminsRoute
+  '/manage/coupons': typeof ManageCouponsRoute
+  '/manage/password': typeof ManagePasswordRoute
+  '/manage/products': typeof ManageProductsRoute
+  '/manage/users': typeof ManageUsersRoute
+  '/manage': typeof ManageIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/manage': typeof ManageRouteWithChildren
+  '/products': typeof ProductsRoute
+  '/register': typeof RegisterRoute
+  '/shop': typeof ShopRoute
+  '/manage/admins': typeof ManageAdminsRoute
+  '/manage/coupons': typeof ManageCouponsRoute
+  '/manage/password': typeof ManagePasswordRoute
+  '/manage/products': typeof ManageProductsRoute
+  '/manage/users': typeof ManageUsersRoute
+  '/manage/': typeof ManageIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/admin'
+    | '/dashboard'
+    | '/login'
+    | '/manage'
+    | '/products'
+    | '/register'
+    | '/shop'
+    | '/manage/admins'
+    | '/manage/coupons'
+    | '/manage/password'
+    | '/manage/products'
+    | '/manage/users'
+    | '/manage/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/admin'
+    | '/dashboard'
+    | '/login'
+    | '/products'
+    | '/register'
+    | '/shop'
+    | '/manage/admins'
+    | '/manage/coupons'
+    | '/manage/password'
+    | '/manage/products'
+    | '/manage/users'
+    | '/manage'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/admin'
+    | '/dashboard'
+    | '/login'
+    | '/manage'
+    | '/products'
+    | '/register'
+    | '/shop'
+    | '/manage/admins'
+    | '/manage/coupons'
+    | '/manage/password'
+    | '/manage/products'
+    | '/manage/users'
+    | '/manage/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRoute
+  DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
+  ManageRoute: typeof ManageRouteWithChildren
+  ProductsRoute: typeof ProductsRoute
+  RegisterRoute: typeof RegisterRoute
+  ShopRoute: typeof ShopRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage': {
+      id: '/manage'
+      path: '/manage'
+      fullPath: '/manage'
+      preLoaderRoute: typeof ManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,12 +282,93 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage/': {
+      id: '/manage/'
+      path: '/'
+      fullPath: '/manage/'
+      preLoaderRoute: typeof ManageIndexRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/users': {
+      id: '/manage/users'
+      path: '/users'
+      fullPath: '/manage/users'
+      preLoaderRoute: typeof ManageUsersRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/products': {
+      id: '/manage/products'
+      path: '/products'
+      fullPath: '/manage/products'
+      preLoaderRoute: typeof ManageProductsRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/password': {
+      id: '/manage/password'
+      path: '/password'
+      fullPath: '/manage/password'
+      preLoaderRoute: typeof ManagePasswordRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/coupons': {
+      id: '/manage/coupons'
+      path: '/coupons'
+      fullPath: '/manage/coupons'
+      preLoaderRoute: typeof ManageCouponsRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/admins': {
+      id: '/manage/admins'
+      path: '/admins'
+      fullPath: '/manage/admins'
+      preLoaderRoute: typeof ManageAdminsRouteImport
+      parentRoute: typeof ManageRoute
+    }
   }
 }
 
+interface ManageRouteChildren {
+  ManageAdminsRoute: typeof ManageAdminsRoute
+  ManageCouponsRoute: typeof ManageCouponsRoute
+  ManagePasswordRoute: typeof ManagePasswordRoute
+  ManageProductsRoute: typeof ManageProductsRoute
+  ManageUsersRoute: typeof ManageUsersRoute
+  ManageIndexRoute: typeof ManageIndexRoute
+}
+
+const ManageRouteChildren: ManageRouteChildren = {
+  ManageAdminsRoute: ManageAdminsRoute,
+  ManageCouponsRoute: ManageCouponsRoute,
+  ManagePasswordRoute: ManagePasswordRoute,
+  ManageProductsRoute: ManageProductsRoute,
+  ManageUsersRoute: ManageUsersRoute,
+  ManageIndexRoute: ManageIndexRoute,
+}
+
+const ManageRouteWithChildren =
+  ManageRoute._addFileChildren(ManageRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AdminRoute: AdminRoute,
+  DashboardRoute: DashboardRoute,
+  LoginRoute: LoginRoute,
+  ManageRoute: ManageRouteWithChildren,
+  ProductsRoute: ProductsRoute,
+  RegisterRoute: RegisterRoute,
+  ShopRoute: ShopRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

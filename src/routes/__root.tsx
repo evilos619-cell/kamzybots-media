@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "KAMZYBOT'S MEDIA" },
+      { name: "description", content: "Kamzy Store Clone is an e-commerce platform replicating bamzystore.org, featuring product browsing, user login, and social media integration." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "KAMZYBOT'S MEDIA" },
+      { property: "og:description", content: "Kamzy Store Clone is an e-commerce platform replicating bamzystore.org, featuring product browsing, user login, and social media integration." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "KAMZYBOT'S MEDIA" },
+      { name: "twitter:description", content: "Kamzy Store Clone is an e-commerce platform replicating bamzystore.org, featuring product browsing, user login, and social media integration." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/fpKJxpHo6rfTb3yw20R5wsvlMRG3/social-images/social-1778856500211-IMG-20260515-WA0004.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/fpKJxpHo6rfTb3yw20R5wsvlMRG3/social-images/social-1778856500211-IMG-20260515-WA0004.webp" },
     ],
     links: [
       {
