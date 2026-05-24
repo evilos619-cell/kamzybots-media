@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProductsRouteImport } from './routes/products'
@@ -26,6 +27,11 @@ import { Route as ManagePasswordRouteImport } from './routes/manage.password'
 import { Route as ManageCouponsRouteImport } from './routes/manage.coupons'
 import { Route as ManageAdminsRouteImport } from './routes/manage.admins'
 
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRoute
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
+  '/wallet': typeof WalletRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/products': typeof ProductsRoute
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
+  '/wallet': typeof WalletRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/products': typeof ProductsRoute
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
+  '/wallet': typeof WalletRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/shop'
+    | '/wallet'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/shop'
+    | '/wallet'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/shop'
+    | '/wallet'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -228,10 +240,18 @@ export interface RootRouteChildren {
   ProductsRoute: typeof ProductsRoute
   RegisterRoute: typeof RegisterRoute
   ShopRoute: typeof ShopRoute
+  WalletRoute: typeof WalletRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -379,6 +399,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsRoute: ProductsRoute,
   RegisterRoute: RegisterRoute,
   ShopRoute: ShopRoute,
+  WalletRoute: WalletRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
