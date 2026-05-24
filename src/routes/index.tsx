@@ -20,10 +20,14 @@ const CONTACTS = {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "KAMZYBOT'S MEDIA — Premium Verified Digital Accounts" },
-      { name: "description", content: "KAMZYBOT'S MEDIA delivers verified Facebook, Instagram, Gmail, TikTok and VPN accounts. Secure, instant delivery, trusted by 1M+ users." },
-      { property: "og:title", content: "KAMZYBOT'S MEDIA — Premium Verified Digital Accounts" },
-      { property: "og:description", content: "Buy verified social media accounts with instant, secure delivery." },
+      { title: "KAMZYBOT'S MEDIA — Premium Social Media Logs & Digital Services" },
+      { name: "description", content: "KAMZYBOT'S MEDIA is a trusted platform for premium social media logs, digital services, and online growth solutions with fast delivery and reliable support." },
+      { property: "og:title", content: "KAMZYBOT'S MEDIA — Premium Social Media Logs & Digital Services" },
+      { property: "og:description", content: "KAMZYBOT'S MEDIA is a trusted platform for premium social media logs, digital services, and online growth solutions with fast delivery and reliable support." },
+      { property: "og:url", content: "https://kamzybotsmedia.store/" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://kamzybotsmedia.store/" },
     ],
   }),
   component: Home,
@@ -192,7 +196,6 @@ function Header() {
   const baseItems = [
     { label: "Product", href: "/products" },
     { label: "About", href: "/about" },
-    { label: "Admin", href: "/admin" },
     { label: "Contact", href: "#contact" },
   ];
   const authItems = isAuthed
