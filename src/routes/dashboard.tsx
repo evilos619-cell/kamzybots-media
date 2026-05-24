@@ -167,10 +167,10 @@ function DashboardPage() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-sm font-semibold border border-primary/20">
+            <Link to="/wallet" className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-sm font-semibold border border-primary/20 hover:bg-primary/20 transition-colors">
               <Wallet className="w-4 h-4" />
               {loading ? "…" : formatNGN(profile?.wallet_balance ?? 0)}
-            </div>
+            </Link>
             <button
               onClick={handleLogout}
               className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
@@ -209,6 +209,8 @@ function DashboardPage() {
               {[
                 { label: "Dashboard", to: "/dashboard" },
                 { label: "Products", to: "/products" },
+                { label: "Wallet", to: "/wallet" },
+                { label: "Contact", to: "/contact" },
                 { label: "About", to: "/about" },
                 { label: "Home", to: "/" },
               ].map(item => (
