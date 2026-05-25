@@ -219,17 +219,15 @@ function ProductCard({ product, stock }: { product: Product; stock: number }) {
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Price</div>
             <div className="font-display font-bold text-lg text-gradient">₦{Number(product.price).toLocaleString()}</div>
           </div>
-          <Link
-            to="/shop"
-            disabled={!inStock}
-            className={`rounded-full px-4 py-2 text-xs font-semibold inline-flex items-center gap-1.5 transition-transform ${
-              inStock
-                ? "bg-cta-gradient text-primary-foreground shadow-soft group-hover:scale-105"
-                : "bg-muted text-muted-foreground pointer-events-none opacity-60"
-            }`}
-          >
-            {inStock ? "Buy" : "Out"} <ShoppingCart className="w-3 h-3" />
-          </Link>
+          {inStock ? (
+            <Link to="/shop" className="rounded-full px-4 py-2 text-xs font-semibold inline-flex items-center gap-1.5 transition-transform bg-cta-gradient text-primary-foreground shadow-soft group-hover:scale-105">
+              Buy <ShoppingCart className="w-3 h-3" />
+            </Link>
+          ) : (
+            <span className="rounded-full px-4 py-2 text-xs font-semibold inline-flex items-center gap-1.5 bg-muted text-muted-foreground opacity-70">
+              Out <ShoppingCart className="w-3 h-3" />
+            </span>
+          )}
         </div>
       </div>
     </div>
