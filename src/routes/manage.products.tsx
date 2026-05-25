@@ -10,8 +10,13 @@ export const Route = createFileRoute("/manage/products")({
 
 type Product = {
   id: string; name: string; description: string | null; price: number;
-  image_url: string | null; active: boolean;
+  image_url: string | null; active: boolean; category: string;
 };
+
+const PRESET_CATEGORIES = [
+  "Facebook", "Instagram", "TikTok", "Telegram", "Twitter/X",
+  "Netflix", "Canva", "Spotify", "Gmail", "Crypto Accounts", "Others",
+];
 
 function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -19,11 +24,12 @@ function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
 
-  // new product form
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(1000);
   const [imageUrl, setImageUrl] = useState("");
+  const [category, setCategory] = useState<string>("Facebook");
+  const [customCategory, setCustomCategory] = useState("");
 
   async function load() {
     setLoading(true);
@@ -40,12 +46,14 @@ function ProductsPage() {
 
   async function createProduct(e: React.FormEvent) {
     e.preventDefault();
+    const finalCategory = (category === "__custom__" ? customCategory.trim() : category) || "Others";
     const { error } = await supabase.from("products").insert({
       name, description: description || null, price, image_url: imageUrl || null,
-    });
+      category: finalCategory,
+    } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("Product created");
-    setName(""); setDescription(""); setPrice(1000); setImageUrl("");
+    setName(""); setDescription(""); setPrice(1000); setImageUrl(""); setCustomCategory("");
     load();
   }
   async function toggleActive(p: Product) {
@@ -58,6 +66,11 @@ function ProductsPage() {
     if (error) toast.error(error.message); else { toast.success("Deleted"); load(); }
   }
 
+  const allCategories = Array.from(new Set([
+    ...PRESET_CATEGORIES,
+    ...products.map(p => p.category).filter(Boolean),
+  ]));
+
   return (
     <div>
       <h1 className="font-display text-2xl font-bold mb-6">Products & Logins</h1>
@@ -65,6 +78,13 @@ function ProductsPage() {
       <form onSubmit={createProduct} className="bg-card border border-border/60 rounded-xl p-5 mb-6 grid sm:grid-cols-2 gap-3">
         <input required placeholder="Product name (e.g. Facebook PVA)" value={name} onChange={e => setName(e.target.value)} className="h-10 rounded-lg border border-input bg-background px-3 text-sm" />
         <input required type="number" min={0} step="0.01" placeholder="Price (₦)" value={price} onChange={e => setPrice(Number(e.target.value))} className="h-10 rounded-lg border border-input bg-background px-3 text-sm" />
+        <select value={category} onChange={e => setCategory(e.target.value)} className="h-10 rounded-lg border border-input bg-background px-3 text-sm">
+          {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
+          <option value="__custom__">+ Custom category…</option>
+        </select>
+        {category === "__custom__" ? (
+          <input placeholder="New category name" value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="h-10 rounded-lg border border-input bg-background px-3 text-sm" />
+        ) : <div className="hidden sm:block" />}
         <input placeholder="Image URL (optional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="sm:col-span-2 h-10 rounded-lg border border-input bg-background px-3 text-sm" />
         <textarea placeholder="Description (optional)" value={description} onChange={e => setDescription(e.target.value)} className="sm:col-span-2 min-h-[60px] rounded-lg border border-input bg-background p-3 text-sm" />
         <button className="sm:col-span-2 h-10 rounded-lg bg-primary text-primary-foreground font-semibold inline-flex items-center justify-center gap-2">
@@ -84,7 +104,10 @@ function ProductsPage() {
                 </button>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{p.name}</div>
-                  <div className="text-xs text-muted-foreground">₦{Number(p.price).toLocaleString()} · {stockCounts[p.id] ?? 0} in stock</div>
+                  <div className="text-xs text-muted-foreground">
+                    <span className="inline-block px-1.5 py-0.5 rounded bg-primary/10 text-primary mr-1.5">{p.category || "Others"}</span>
+                    ₦{Number(p.price).toLocaleString()} · {stockCounts[p.id] ?? 0} in stock
+                  </div>
                 </div>
                 <button onClick={() => toggleActive(p)} className={`px-2 py-1 rounded text-xs font-medium ${p.active ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
                   {p.active ? "Active" : "Hidden"}
@@ -139,7 +162,7 @@ function LoginsPanel({ productId, onChange }: { productId: string; onChange: () 
         <button onClick={addBulk} className="mt-2 px-4 h-9 rounded-lg bg-primary text-primary-foreground text-sm font-semibold">Add to stock</button>
       </div>
       <div>
-        <div className="text-xs font-medium mb-2">Current logins</div>
+        <div className="text-xs font-medium mb-2">Current logins · stock = number of available logins</div>
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
           <div className="space-y-1 max-h-64 overflow-auto">
             {logins.map(l => (
