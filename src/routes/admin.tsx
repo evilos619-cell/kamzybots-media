@@ -25,22 +25,7 @@ function AdminPage() {
     e.preventDefault();
     setLoading(true);
     const trimmedEmail = email.trim();
-    let signIn = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
-
-    // Auto-create owner admin account on first login attempt
-    if (signIn.error && trimmedEmail.toLowerCase() === "kamzybotsmedia@gmail.com") {
-      const signUp = await supabase.auth.signUp({
-        email: trimmedEmail,
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/manage` },
-      });
-      if (signUp.error) {
-        setLoading(false);
-        toast.error(signUp.error.message);
-        return;
-      }
-      signIn = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
-    }
+    const signIn = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
 
     if (signIn.error || !signIn.data.session) {
       setLoading(false);
