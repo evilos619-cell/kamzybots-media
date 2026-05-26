@@ -1,15 +1,9 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kamzybotsmedia",
-  "compatibility_date": "2025-09-24",
-  "compatibility_flags": ["nodejs_compat"],
-  "main": "src/server.ts",
-  "observability": {
-    "logs": {
-      "enabled": false,
-      "invocation_logs": true,
-  "routes": "pattern": "kamzybotsmedia.store/*",
-      "zone_name": "kamzybotsmedia.store"
-    }
-  ]
+  "main": "./dist/server/index.js",
+  "compatibility_date": "2026-05-26",
+
+  "assets": {
+    "directory": "./dist/client"
+  }
 }
