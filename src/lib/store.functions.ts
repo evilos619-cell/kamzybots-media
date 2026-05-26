@@ -124,7 +124,7 @@ export const purchaseProduct = createServerFn({ method: "POST" })
     const { data: rpc, error } = await supabaseAdmin.rpc("purchase_product_atomic", {
       _user_id: context.userId,
       _product_id: data.productId,
-      _coupon_code: data.couponCode ?? null,
+      _coupon_code: data.couponCode ?? undefined,
     });
     if (error) throw new Error(error.message);
     return rpc as {
