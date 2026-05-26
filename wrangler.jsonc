@@ -1,9 +1,4 @@
 {
   "name": "kamzybotsmedia",
-  "main": "./dist/server/index.js",
-  "compatibility_date": "2026-05-26",
-
-  "assets": {
-    "directory": "./dist/client"
-  }
+  "main": "./src/index.ts"
 }
