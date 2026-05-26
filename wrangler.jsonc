@@ -8,9 +8,7 @@
     "logs": {
       "enabled": false,
       "invocation_logs": true
-  "routes": [
-    {
-      "pattern": "kamzybotsmedia.store/*",
+  "routes": "pattern": "kamzybotsmedia.store/*",
       "zone_name": "kamzybotsmedia.store"
     }
   ]
