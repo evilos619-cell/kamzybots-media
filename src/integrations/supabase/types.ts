@@ -309,6 +309,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      purchase_product_atomic: {
+        Args: { _coupon_code?: string; _product_id: string; _user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
