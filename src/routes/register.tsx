@@ -48,7 +48,7 @@ function RegisterPage() {
       email: form.email.trim(),
       password: form.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           first_name: form.first_name.trim(),
           last_name: form.last_name.trim(),

@@ -26,6 +26,7 @@ import { Route as ManageProductsRouteImport } from './routes/manage.products'
 import { Route as ManagePasswordRouteImport } from './routes/manage.password'
 import { Route as ManageCouponsRouteImport } from './routes/manage.coupons'
 import { Route as ManageAdminsRouteImport } from './routes/manage.admins'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
@@ -112,6 +113,11 @@ const ManageAdminsRoute = ManageAdminsRouteImport.update({
   path: '/admins',
   getParentRoute: () => ManageRoute,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
   '/wallet': typeof WalletRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
   '/wallet': typeof WalletRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
   '/wallet': typeof WalletRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/shop'
     | '/wallet'
+    | '/auth/callback'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/shop'
     | '/wallet'
+    | '/auth/callback'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/shop'
     | '/wallet'
+    | '/auth/callback'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -241,6 +253,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ShopRoute: typeof ShopRoute
   WalletRoute: typeof WalletRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageAdminsRouteImport
       parentRoute: typeof ManageRoute
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -400,6 +420,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ShopRoute: ShopRoute,
   WalletRoute: WalletRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
