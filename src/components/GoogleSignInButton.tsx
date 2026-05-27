@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { lovable } from "@/integrations/lovable";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -7,9 +7,12 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
   const [loading, setLoading] = useState(false);
   async function handle() {
     setLoading(true);
-    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/dashboard` });
-    if ((res as any).error) {
-      toast.error((res as any).error.message || "Google sign-in failed");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) {
+      toast.error(error.message || "Google sign-in failed");
       setLoading(false);
     }
   }
