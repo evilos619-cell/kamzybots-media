@@ -83,8 +83,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "KAMZYBOT'S MEDIA" },
       { name: "twitter:description", content: "KAMZYBOT'S MEDIA is a trusted platform for premium social media logs, digital services, and online growth solutions with fast delivery and reliable support." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/fpKJxpHo6rfTb3yw20R5wsvlMRG3/social-images/social-1778856500211-IMG-20260515-WA0004.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/fpKJxpHo6rfTb3yw20R5wsvlMRG3/social-images/social-1778856500211-IMG-20260515-WA0004.webp" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/10iN1XgC8cc7jeVOsu3B2C8k4YT2/social-images/social-1779863098471-IMG_20260523_165348_975.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/10iN1XgC8cc7jeVOsu3B2C8k4YT2/social-images/social-1779863098471-IMG_20260523_165348_975.webp" },
     ],
     links: [
       {
