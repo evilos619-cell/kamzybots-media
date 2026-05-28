@@ -28,6 +28,7 @@ import { Route as ManageCouponsRouteImport } from './routes/manage.coupons'
 import { Route as ManageAdminsRouteImport } from './routes/manage.admins'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApiPublicPaystackWebhookRouteImport } from './routes/api/public/paystack.webhook'
+import { Route as ApiPublicMonnifyWebhookRouteImport } from './routes/api/public/monnify.webhook'
 
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
@@ -125,6 +126,11 @@ const ApiPublicPaystackWebhookRoute =
     path: '/api/public/paystack/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMonnifyWebhookRoute = ApiPublicMonnifyWebhookRouteImport.update({
+  id: '/api/public/monnify/webhook',
+  path: '/api/public/monnify/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/manage/products': typeof ManageProductsRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage/': typeof ManageIndexRoute
+  '/api/public/monnify/webhook': typeof ApiPublicMonnifyWebhookRoute
   '/api/public/paystack/webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/manage/products': typeof ManageProductsRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage': typeof ManageIndexRoute
+  '/api/public/monnify/webhook': typeof ApiPublicMonnifyWebhookRoute
   '/api/public/paystack/webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesById {
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/manage/products': typeof ManageProductsRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage/': typeof ManageIndexRoute
+  '/api/public/monnify/webhook': typeof ApiPublicMonnifyWebhookRoute
   '/api/public/paystack/webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/manage/products'
     | '/manage/users'
     | '/manage/'
+    | '/api/public/monnify/webhook'
     | '/api/public/paystack/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/manage/products'
     | '/manage/users'
     | '/manage'
+    | '/api/public/monnify/webhook'
     | '/api/public/paystack/webhook'
   id:
     | '__root__'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/manage/products'
     | '/manage/users'
     | '/manage/'
+    | '/api/public/monnify/webhook'
     | '/api/public/paystack/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   WalletRoute: typeof WalletRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  ApiPublicMonnifyWebhookRoute: typeof ApiPublicMonnifyWebhookRoute
   ApiPublicPaystackWebhookRoute: typeof ApiPublicPaystackWebhookRoute
 }
 
@@ -405,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaystackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/monnify/webhook': {
+      id: '/api/public/monnify/webhook'
+      path: '/api/public/monnify/webhook'
+      fullPath: '/api/public/monnify/webhook'
+      preLoaderRoute: typeof ApiPublicMonnifyWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -442,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   WalletRoute: WalletRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  ApiPublicMonnifyWebhookRoute: ApiPublicMonnifyWebhookRoute,
   ApiPublicPaystackWebhookRoute: ApiPublicPaystackWebhookRoute,
 }
 export const routeTree = rootRouteImport

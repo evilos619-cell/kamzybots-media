@@ -1,8 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Wallet as WalletIcon, ArrowLeft, MessageCircle, Loader2, Plus, ArrowDownCircle, ArrowUpCircle, ShieldCheck } from "lucide-react";
+import { Wallet as WalletIcon, ArrowLeft, Loader2, ArrowDownCircle, ArrowUpCircle, ShieldCheck, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { initPaystackPayment, initMonnifyPayment, verifyPaymentByReference } from "@/lib/payments.functions";
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
@@ -10,6 +12,10 @@ export const Route = createFileRoute("/wallet")({
       { title: "Wallet — KAMZYBOT'S MEDIA" },
       { name: "description", content: "View your KAMZYBOT'S MEDIA wallet balance, transactions, and fund your account." },
     ],
+  }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    ref: typeof s.ref === "string" ? s.ref : undefined,
+    provider: typeof s.provider === "string" ? s.provider : undefined,
   }),
   component: WalletPage,
 });
@@ -28,30 +34,74 @@ function formatNGN(n: number) {
 
 function WalletPage() {
   const navigate = useNavigate();
+  const search = useSearch({ from: "/wallet" });
+  const initPaystack = useServerFn(initPaystackPayment);
+  const initMonnify = useServerFn(initMonnifyPayment);
+  const verifyFn = useServerFn(verifyPaymentByReference);
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [email, setEmail] = useState<string | null>(null);
   const [txns, setTxns] = useState<Txn[]>([]);
+  const [amount, setAmount] = useState<string>("1000");
+  const [coupon, setCoupon] = useState<string>("");
+  const [paying, setPaying] = useState<"paystack" | "monnify" | null>(null);
+  const [verifyState, setVerifyState] = useState<"idle" | "verifying" | "done">("idle");
+
+  async function refresh() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const [{ data: profile }, { data: txData }] = await Promise.all([
+      supabase.from("profiles").select("wallet_balance").eq("id", session.user.id).maybeSingle(),
+      supabase.from("wallet_transactions").select("id,amount,type,note,created_at").eq("user_id", session.user.id).order("created_at", { ascending: false }).limit(50),
+    ]);
+    setBalance(Number(profile?.wallet_balance ?? 0));
+    setTxns((txData ?? []) as Txn[]);
+  }
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate({ to: "/login" }); return; }
+      if (!session) { navigate({ to: "/login", search: { redirect: "/wallet" } as any }); return; }
       setEmail(session.user.email ?? null);
-      const [{ data: profile, error: pErr }, { data: txData, error: tErr }] = await Promise.all([
-        supabase.from("profiles").select("wallet_balance").eq("id", session.user.id).maybeSingle(),
-        supabase.from("wallet_transactions").select("id,amount,type,note,created_at").eq("user_id", session.user.id).order("created_at", { ascending: false }).limit(50),
-      ]);
+      await refresh();
       if (cancelled) return;
-      if (pErr) toast.error(pErr.message);
-      if (tErr) toast.error(tErr.message);
-      setBalance(Number(profile?.wallet_balance ?? 0));
-      setTxns((txData ?? []) as Txn[]);
       setLoading(false);
+
+      if (search.ref) {
+        setVerifyState("verifying");
+        try {
+          const res = await verifyFn({ data: { reference: search.ref } });
+          if (res.ok && res.status === "success") {
+            toast.success(`Wallet credited with ₦${Number(res.amountCredited).toLocaleString()}`);
+            await refresh();
+          } else {
+            toast.error("Payment not successful. If you completed payment, try again in a few seconds.");
+          }
+        } catch (e: any) {
+          toast.error(e?.message ?? "Verification failed");
+        }
+        setVerifyState("done");
+        navigate({ to: "/wallet", replace: true, search: {} as any });
+      }
     })();
     return () => { cancelled = true; };
-  }, [navigate]);
+  }, [navigate, search.ref]);
+
+  async function handlePay(provider: "paystack" | "monnify") {
+    const amt = Number(amount);
+    if (!Number.isFinite(amt) || amt < 100) { toast.error("Minimum funding is ₦100"); return; }
+    if (amt > 1_000_000) { toast.error("Maximum funding is ₦1,000,000"); return; }
+    setPaying(provider);
+    try {
+      const fn = provider === "paystack" ? initPaystack : initMonnify;
+      const res = await fn({ data: { amount: amt, couponCode: coupon.trim() || undefined } });
+      window.location.assign(res.authorization_url);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to start payment");
+      setPaying(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -74,6 +124,11 @@ function WalletPage() {
       </header>
 
       <main className="container mx-auto max-w-5xl px-4 py-8 space-y-8">
+        {verifyState === "verifying" && (
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm text-primary inline-flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" /> Verifying your payment…
+          </div>
+        )}
         <section className="rounded-3xl bg-cta-gradient text-primary-foreground p-7 shadow-soft">
           <div className="flex items-center gap-3 opacity-90">
             <WalletIcon className="w-5 h-5" />
@@ -82,26 +137,55 @@ function WalletPage() {
           <p className="mt-3 font-display text-4xl md:text-5xl font-extrabold tracking-tight">{formatNGN(balance)}</p>
           <p className="mt-2 text-sm opacity-80">Signed in as {email}</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="https://wa.me/2348159696814?text=I%20want%20to%20fund%20my%20wallet" target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-white text-foreground px-5 py-2.5 text-sm font-semibold shadow-soft hover:scale-[1.02] transition-transform">
-              <Plus className="w-4 h-4" /> Fund via WhatsApp
-            </a>
+            <Link to="/dashboard/products" className="inline-flex items-center gap-2 rounded-full bg-white text-foreground px-5 py-2.5 text-sm font-semibold shadow-soft hover:scale-[1.02] transition-transform">
+              My Products
+            </Link>
             <Link to="/products" className="inline-flex items-center gap-2 rounded-full border border-white/40 px-5 py-2.5 text-sm font-semibold hover:bg-white/10 transition-colors">
               Shop Products
             </Link>
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-6">
+        <section className="rounded-2xl border border-border bg-card p-6 space-y-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><ShieldCheck className="w-5 h-5" /></div>
             <div>
-              <h2 className="font-semibold">How to fund your wallet</h2>
+              <h2 className="font-semibold">Fund your wallet</h2>
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Message us on WhatsApp with the amount you want to add. Once payment is confirmed, our admin team credits your wallet instantly and you can start purchasing.
+                Pay securely with Paystack or Monnify. Your wallet is credited instantly after successful payment.
               </p>
             </div>
           </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">Amount (NGN)</span>
+              <input type="number" min={100} max={1_000_000} step={50} value={amount}
+                onChange={e => setAmount(e.target.value)}
+                className="mt-1 w-full h-11 rounded-lg border border-input bg-background px-3 text-sm" />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">Coupon (optional)</span>
+              <input type="text" value={coupon}
+                onChange={e => setCoupon(e.target.value.toUpperCase())}
+                placeholder="GIFT10"
+                className="mt-1 w-full h-11 rounded-lg border border-input bg-background px-3 text-sm uppercase" />
+            </label>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <button disabled={!!paying} onClick={() => handlePay("paystack")}
+              className="inline-flex items-center justify-center gap-2 h-12 rounded-xl bg-[#0BA4DB] text-white font-semibold disabled:opacity-60">
+              {paying === "paystack" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+              Pay with Paystack
+            </button>
+            <button disabled={!!paying} onClick={() => handlePay("monnify")}
+              className="inline-flex items-center justify-center gap-2 h-12 rounded-xl bg-[#0B2545] text-white font-semibold disabled:opacity-60">
+              {paying === "monnify" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+              Pay with Monnify
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">Min ₦100 · Max ₦1,000,000 per transaction.</p>
         </section>
 
         <section>
@@ -135,10 +219,6 @@ function WalletPage() {
         </section>
       </main>
 
-      <a href="https://wa.me/2348159696814" target="_blank" rel="noreferrer"
-        className="fixed bottom-6 right-6 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-3 text-sm font-semibold shadow-soft hover:scale-105 transition-transform">
-        <MessageCircle className="w-4 h-4" /> Message Us
-      </a>
     </div>
   );
 }
