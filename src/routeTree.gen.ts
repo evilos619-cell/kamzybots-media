@@ -26,6 +26,7 @@ import { Route as ManageProductsRouteImport } from './routes/manage.products'
 import { Route as ManagePasswordRouteImport } from './routes/manage.password'
 import { Route as ManageCouponsRouteImport } from './routes/manage.coupons'
 import { Route as ManageAdminsRouteImport } from './routes/manage.admins'
+import { Route as DashboardProductsRouteImport } from './routes/dashboard.products'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApiPublicPaystackWebhookRouteImport } from './routes/api/public/paystack.webhook'
 import { Route as ApiPublicMonnifyWebhookRouteImport } from './routes/api/public/monnify.webhook'
@@ -115,6 +116,11 @@ const ManageAdminsRoute = ManageAdminsRouteImport.update({
   path: '/admins',
   getParentRoute: () => ManageRoute,
 } as any)
+const DashboardProductsRoute = DashboardProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -137,7 +143,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/manage': typeof ManageRouteWithChildren
   '/products': typeof ProductsRoute
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/wallet': typeof WalletRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/products': typeof DashboardProductsRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -159,13 +166,14 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/products': typeof ProductsRoute
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
   '/wallet': typeof WalletRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/products': typeof DashboardProductsRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -181,7 +189,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/manage': typeof ManageRouteWithChildren
   '/products': typeof ProductsRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/wallet': typeof WalletRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/products': typeof DashboardProductsRoute
   '/manage/admins': typeof ManageAdminsRoute
   '/manage/coupons': typeof ManageCouponsRoute
   '/manage/password': typeof ManagePasswordRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/wallet'
     | '/auth/callback'
+    | '/dashboard/products'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/wallet'
     | '/auth/callback'
+    | '/dashboard/products'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -256,6 +267,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/wallet'
     | '/auth/callback'
+    | '/dashboard/products'
     | '/manage/admins'
     | '/manage/coupons'
     | '/manage/password'
@@ -271,7 +283,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   ContactRoute: typeof ContactRoute
-  DashboardRoute: typeof DashboardRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
   ManageRoute: typeof ManageRouteWithChildren
   ProductsRoute: typeof ProductsRoute
@@ -404,6 +416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageAdminsRouteImport
       parentRoute: typeof ManageRoute
     }
+    '/dashboard/products': {
+      id: '/dashboard/products'
+      path: '/products'
+      fullPath: '/dashboard/products'
+      preLoaderRoute: typeof DashboardProductsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -427,6 +446,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface DashboardRouteChildren {
+  DashboardProductsRoute: typeof DashboardProductsRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardProductsRoute: DashboardProductsRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
 
 interface ManageRouteChildren {
   ManageAdminsRoute: typeof ManageAdminsRoute
@@ -454,7 +485,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   ContactRoute: ContactRoute,
-  DashboardRoute: DashboardRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
   ManageRoute: ManageRouteWithChildren,
   ProductsRoute: ProductsRoute,
