@@ -1,72 +1,94 @@
-
 ## Goal
 
-Build a complete admin panel behind admin authentication, plus the user-facing product purchase flow that delivers product "logins" by email.
+Ship a production-ready purchase + funding loop that does not depend on any email service. Money flows in via Paystack or Monnify (both go straight to your connected accounts), webhooks credit the wallet, purchases are stored against the user, and the user collects their login credentials inside `/dashboard/products`.
 
-## 1. Database (one migration)
+## 1. Database changes (single migration)
 
-New tables (all with RLS):
+New + altered tables:
 
-- `app_role` enum: `admin`, `user`
-- `user_roles` (`user_id`, `role`) — separate table to avoid privilege escalation. `has_role()` SECURITY DEFINER function.
-- Add `is_suspended boolean default false` to `profiles`.
-- `coupons` — `code` (unique), `discount_percent` (int 1–100), `active`, `max_uses`, `times_used`, `expires_at`.
-- `coupon_redemptions` — log of which user used which coupon (prevents double-use).
-- `products` — `name`, `description`, `price`, `image_url`, `active`.
-- `product_logins` — `product_id`, `login_data` (text, e.g. `email:pass`), `status` (`available`/`sold`), `sold_to_user_id`, `sold_at`.
-- `orders` — `user_id`, `product_id`, `price_paid`, `coupon_code`, `login_id`, `status`, `created_at`.
-- `wallet_transactions` — `user_id`, `amount`, `type` (`fund`, `purchase`, `admin_credit`), `note`, `admin_id`.
+- `payment_transactions` — every funding attempt
+  - `id`, `user_id`, `provider` (`paystack` | `monnify`), `reference` (unique), `amount_paid` (what user paid), `amount_credited` (what hits wallet, after coupon), `coupon_code`, `status` (`pending` | `success` | `failed`), `raw_payload jsonb`, `created_at`, `verified_at`
+  - RLS: user sees own; admins see all; only service role inserts/updates
+- Extend `coupons`: add `scope` (`purchase` | `funding` | `both`, default `both`) and `discount_type` (`percent` | `fixed`, default `percent`) and `fixed_amount numeric` (nullable). Keep `discount_percent` for back-compat.
+- Add view `user_purchases` (or just query `orders` joined with `products` + `product_logins`) — no new table needed; `orders` already links `user_id`, `product_id`, `login_id`, `price_paid`, `created_at`. RLS already returns user's own orders.
 
-RLS rules:
-- Users see only their own profile/orders/transactions.
-- Admins (via `has_role`) can read/write everything.
-- `product_logins.login_data` only readable by admins or by the buyer (via their own order).
-- Suspended users blocked from inserting orders (trigger).
+New RPCs:
 
-Seed: insert admin role for `kamzybotsmedia@gmail.com` once that account exists (handled via a server function "promote me" if email matches, or done manually after first login).
+- `apply_funding_coupon(_code text, _amount_paid numeric) returns jsonb` — returns `{ amount_credited, coupon_code }`. Used by the verification routes; locks + increments `times_used` atomically.
+- `credit_wallet_from_payment(_user_id uuid, _reference text, _provider text, _amount_paid numeric, _coupon_code text, _raw jsonb) returns jsonb` — idempotent: if `reference` already `success`, returns existing record without re-crediting. Otherwise computes credited amount (with coupon), updates `profiles.wallet_balance`, inserts `wallet_transactions`, marks `payment_transactions.status = 'success'`.
 
-## 2. Admin auth
+## 2. Payment initialization (server functions)
 
-- Update `/admin` login page to use `supabase.auth.signInWithPassword`, then check `has_role(uid, 'admin')`. If not admin → sign out + error.
-- New `_adminAuth` layout route (`src/routes/admin/_layout.tsx`) that gates every admin sub-route. Redirects to `/admin` if not signed in or not admin.
-- Seed the admin: after the user registers `kamzybotsmedia@gmail.com`, a server function auto-grants admin if email matches the hardcoded owner email.
+`src/lib/payments.functions.ts`:
 
-Note on the password `@KAMZY619`: the user sets this themselves at registration. The login page just authenticates against Supabase Auth — we cannot hardcode a password securely.
+- `initPaystackPayment({ amount, couponCode })` — calls Paystack `/transaction/initialize` with user email, amount in kobo, our generated `reference`, `callback_url = ${SITE_URL}/wallet?ref=...`. Inserts `payment_transactions` row with `status='pending'`. Returns `{ authorization_url, reference }`.
+- `initMonnifyPayment({ amount, couponCode })` — same shape, uses Monnify `/api/v1/merchant/transactions/init-transaction`, returns the checkout URL.
+- `verifyPaymentByReference({ reference })` — user-callable fallback after redirect: re-verifies with provider, then calls `credit_wallet_from_payment`. Used so credit happens even if the webhook is slow.
 
-## 3. Admin panel pages
+`SITE_URL` derived from `process.env.SITE_URL` (set in deploy env). Fallback to request origin server-side.
 
-Layout with sidebar nav. Pages:
+## 3. Webhooks (TanStack server routes — no edge functions)
 
-1. **Dashboard** (`/admin/panel`) — stat cards (users, orders, revenue).
-2. **Coupons** (`/admin/panel/coupons`) — create/edit/delete coupon codes with discount %.
-3. **Products** (`/admin/panel/products`) — CRUD products; per product, manage stock by pasting login entries (one per line). Shows available count.
-4. **Users** (`/admin/panel/users`) — list all users with email/phone, "Suspend/Unsuspend" toggle, "Fund wallet" action (amount + note).
-5. **Admins** (`/admin/panel/admins`) — add admin by email, remove admin.
-6. **Change Password** (`/admin/panel/password`) — `supabase.auth.updateUser({ password })`.
+- `src/routes/api/public/paystack.webhook.ts` — verify `x-paystack-signature` HMAC SHA512 against raw body using `PAYSTACK_SECRET_KEY`. On `charge.success`, call `credit_wallet_from_payment`.
+- `src/routes/api/public/monnify.webhook.ts` — verify `monnify-signature` HMAC SHA512 against raw body using `MONIFY_SECRET_KEY`. On `SUCCESSFUL_TRANSACTION`, call `credit_wallet_from_payment`.
 
-## 4. User-facing purchase flow
+Both are idempotent via `reference`. Webhook URLs you'll paste into Paystack/Monnify dashboard:
+- `https://kamzybotsmedia.store/api/public/paystack.webhook`
+- `https://kamzybotsmedia.store/api/public/monnify.webhook`
 
-- Update `/dashboard` (or new `/products` user view) so each product card shows price, stock, "Buy".
-- Buy flow: enter optional coupon code → server function validates coupon, checks wallet balance, deducts price (with discount), assigns one available `product_logins` row, creates order, emails the login to user's email.
-- Email via Lovable Emails (set up email infrastructure + one transactional template `product-login-delivery`).
-- "Fund wallet" page for users (manual top-up requested via WhatsApp for now; admin credits via panel).
+## 4. Wallet UI rewrite (`/wallet`)
 
-## 5. Suspension enforcement
+Replace WhatsApp-only funding with a real funding card:
+- Amount input (NGN), coupon input, two buttons: **Pay with Paystack** / **Pay with Monnify**.
+- On click: call `initPaystackPayment` / `initMonnifyPayment`, then `window.location.assign(authorization_url)`.
+- On return (`?ref=...`): show "verifying" state, call `verifyPaymentByReference`, toast success, refresh balance and txns.
 
-- DB trigger on `orders` insert: reject if `profiles.is_suspended = true`.
-- Login flow: after sign-in, if suspended, sign out + toast "Account suspended".
+## 5. Dashboard product delivery
 
-## Technical notes
+- New route `src/routes/_authenticated.tsx` (pathless layout) + move/duplicate dashboard + products under it. Loader gate calls `supabase.auth.getUser()`; if missing, `throw redirect({ to: "/login", search: { redirect: location.href } })`.
+- New `src/routes/_authenticated/dashboard.products.tsx` → URL `/dashboard/products`.
+  - Server fn `getMyPurchases()` returns `orders` joined with `products` and `product_logins.login_data` for that user.
+  - UI: responsive grid of cards — product image, name, purchase date, status badge, **Reveal credentials** (toggles `login_data`), **Copy**, **Buy again** link.
+  - Empty state: "You have not purchased any products yet."
+- Update login + register to redirect to `/dashboard/products` after success (or to `search.redirect` if present).
+- Update shop's purchase modal: in addition to showing credentials inline, show CTA "View in My Products" → `/dashboard/products`.
 
-- All admin mutations via `createServerFn` with `requireSupabaseAuth` + `has_role(uid,'admin')` check.
-- Email delivery uses `email_domain--setup_email_infra` + `email_domain--scaffold_transactional_email`, then a `product-login-delivery` template called from the purchase server fn.
-- Wire `attachSupabaseAuth` in `src/start.ts` if not already.
+## 6. Coupons applied to funding
 
-## Out of scope (flagged for user)
+- Extend `manage.coupons.tsx`: add `scope` and `discount_type` controls, optional `fixed_amount`.
+- `apply_funding_coupon` does the math:
+  - `percent` → `credited = amount_paid / (1 - p/100)` (your example: ₦9,000 paid with 10% → ₦10,000 credited).
+  - `fixed` → `credited = amount_paid + fixed_amount`.
+- Funding flow stores the chosen coupon on the `payment_transactions` row; webhook reads it from there (never trust webhook payload for coupon).
 
-- Real payment gateway integration (Paystack/Flutterwave). Wallet funding will be admin-credited only for now; you can add a gateway later.
-- "Password is visible only to them" — Supabase stores passwords as one-way hashes; nobody (not even the user) can view the password. Users can only **reset** it. I'll add a "Forgot password" link.
+## 7. Admin transactions view
 
-## Confirm before I build
+- New `src/routes/manage.payments.tsx` listing `payment_transactions` (filter by status / provider, search by reference / email). Read-only.
+- Add to `manage.index.tsx` sidebar.
 
-This is a large build (~10–15 files + migration + email setup). Want me to proceed with everything above, or trim anything (e.g. skip email delivery for now, skip wallet funding gateway note)?
+## 8. Secrets + env
+
+Already present: `PAYSTARK_PUBLIC_KEY`, `PAYSTARK_SECRET_KEY`, `MONIFY_API_KEY`, `MONIFY_SECRET_KEY`, `MONIFY_CONTRACT_CODE`. Will ask you to add:
+- `SITE_URL=https://kamzybotsmedia.store`
+- (Optional, for separate webhook secrets) — Paystack uses the secret key for webhook HMAC, so no extra. Monnify uses `MONIFY_SECRET_KEY` for the `transactionHash` check — already set.
+
+## 9. Auth + deployment correctness
+
+- Login redirect: respect `?redirect=` search param; default to `/dashboard/products`.
+- Register: `emailRedirectTo` → `${SITE_URL}/auth/callback`; callback redirects to `/dashboard/products`.
+- Remove any hardcoded `kamzybotsmedia.store` from code — derive from `SITE_URL` env or `window.location.origin`.
+- `wrangler.jsonc` already correct after prior fix.
+
+## 10. Out of scope (will not do unless asked)
+
+- Replacing the existing in-wallet purchase flow with a "pay at checkout" flow. Purchases continue to deduct from wallet (matches your "fund wallet → buy" model). Coupon at purchase time keeps working as today.
+- Building an automated file-download system for non-credential products. Today's products are login credentials (`product_logins.login_data`), shown securely in the dashboard. Add me a note if you also sell file products and I'll layer signed Supabase Storage URLs on top.
+
+## Open questions before I build
+
+1. **Webhook URL** — confirm I should use `https://kamzybotsmedia.store/api/public/...` (your custom domain). If you're still routing through the Lovable preview, give me the URL to register in Paystack/Monnify.
+2. **`SITE_URL` secret** — I'll add it via the secrets tool. OK to use `https://kamzybotsmedia.store`?
+3. **Funding coupon math** — confirm the spec: "₦9,000 paid with 10% coupon → ₦10,000 credited" (gross-up). The alternative reading is "10% discount on what you owe for the same credit" which is the same number — just confirming.
+4. Any minimum / maximum funding amount? I'll default to **min ₦100, max ₦1,000,000** per transaction unless you say otherwise.
+
+Reply with answers (or just "go") and I'll implement in this order: migration → server fns + webhooks → wallet UI → `_authenticated` gate + `/dashboard/products` → admin payments page → login/register redirect fixes.

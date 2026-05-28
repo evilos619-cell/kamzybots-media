@@ -53,9 +53,12 @@ export type Database = {
           created_at: string
           created_by: string | null
           discount_percent: number
+          discount_type: string
           expires_at: string | null
+          fixed_amount: number | null
           id: string
           max_uses: number | null
+          scope: string
           times_used: number
         }
         Insert: {
@@ -64,9 +67,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           discount_percent: number
+          discount_type?: string
           expires_at?: string | null
+          fixed_amount?: number | null
           id?: string
           max_uses?: number | null
+          scope?: string
           times_used?: number
         }
         Update: {
@@ -75,9 +81,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           discount_percent?: number
+          discount_type?: string
           expires_at?: string | null
+          fixed_amount?: number | null
           id?: string
           max_uses?: number | null
+          scope?: string
           times_used?: number
         }
         Relationships: []
@@ -132,6 +141,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_transactions: {
+        Row: {
+          amount_credited: number
+          amount_paid: number
+          coupon_code: string | null
+          created_at: string
+          id: string
+          provider: string
+          raw_payload: Json | null
+          reference: string
+          status: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount_credited?: number
+          amount_paid: number
+          coupon_code?: string | null
+          created_at?: string
+          id?: string
+          provider: string
+          raw_payload?: Json | null
+          reference: string
+          status?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount_credited?: number
+          amount_paid?: number
+          coupon_code?: string | null
+          created_at?: string
+          id?: string
+          provider?: string
+          raw_payload?: Json | null
+          reference?: string
+          status?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
       }
       product_logins: {
         Row: {
@@ -302,6 +353,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      credit_wallet_from_payment: {
+        Args: {
+          _amount_paid: number
+          _provider: string
+          _raw: Json
+          _reference: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
